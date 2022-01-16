@@ -7,5 +7,6 @@ WHITE = (255, 255, 255)
 
 FPS = 60
 
+snake_head_img = pyi.load("imgs\\head.png")
 snake_img = pyi.load("imgs\\tail.png")
 food_img = pyi.load("imgs\\food.png")

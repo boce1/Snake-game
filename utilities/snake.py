@@ -1,7 +1,14 @@
 import pygame
-from utilities.parameters import HEIGHT, WHITE, WIDTH, snake_img
+from utilities.parameters import BLACK, HEIGHT, WHITE, WIDTH, snake_img, snake_head_img
+
+pygame.init()
+pygame.font.init()
+font = pygame.font.SysFont("Consolas", 50)
+game_over_message = font.render("Game Over", True, WHITE)
+
 class Snake:
     def __init__(self, x, y):
+        self.head = snake_head_img
         self.img = snake_img
         self.width = self.img.get_width()
         self.height = self.img.get_height()
@@ -27,10 +34,15 @@ class Snake:
             #self.y += self.speed
             self.y += self.height
 
-    def is_dead(self):
+    def is_dead(self, win):
         if (self.x, self.y) in self.tail[0:(len(self.tail) - 1)]:
             self.tail = [(self.x, self.y)]
             self.tail_len = 1
+            win.fill(BLACK)
+            win.blit(game_over_message, (WIDTH // 2 - game_over_message.get_width() // 2,
+                                        HEIGHT // 2 - game_over_message.get_height() // 2))
+            pygame.display.update()
+            pygame.time.wait(1000)
 
     def track_tail(self):
         if not (self.x < 0 or self.y < 0 or self.x > WIDTH - self.width or self.y > WIDTH - self.width):
@@ -55,6 +67,7 @@ class Snake:
             self.direction = "left"
         if self.is_key_pressed(pygame.K_d, event):
             self.direction = "right"
+ 
 
     def draw(self, win):
         self.move()
@@ -74,8 +87,10 @@ class Snake:
         if self.y < 0:
             self.y = HEIGHT - self.height 
             self.track_tail()
-        self.is_dead()
+        self.is_dead(win)
         for i in range(len(self.tail)):
-            win.blit(self.img, self.tail[i])
+            win.blit(self.head, self.tail[-1])
+            if i != len(self.tail) - 1:
+                win.blit(self.img, self.tail[i])
         #pygame.display.update()
         #print(self.tail)      
