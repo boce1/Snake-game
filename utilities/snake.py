@@ -1,10 +1,13 @@
 import pygame
-from utilities.parameters import BLACK, HEIGHT, WHITE, WIDTH, snake_img, snake_head_img
+from utilities.parameters import BLACK, HEIGHT, WHITE, WIDTH, snake_img, snake_head_img, background_img
 
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont("Consolas", 50)
 game_over_message = font.render("Game Over", True, WHITE)
+win_message = font.render("You win", True, 50)
+
+dead_sound = pygame.mixer.Sound("sounds\\dead.wav")
 
 class Snake:
     def __init__(self, x, y):
@@ -19,6 +22,7 @@ class Snake:
         self.tail_len = 1
         self.tail = [(self.x, self.y)]
         self.delay = 75
+        self.menu = False
 
     def move(self):
         if self.direction == "right":
@@ -34,15 +38,33 @@ class Snake:
             #self.y += self.speed
             self.y += self.height
 
+    def win_game(self, win):
+        if len(self.tail) >= (WIDTH // self.width) ** 2:
+        #if self.tail_len >= (WIDTH // self.width) ** 2:
+            self.tail = [(self.x, self.y)]
+            self.tail_len = 1
+            self.menu = True
+            #win.fill(BLACK)
+            win.blit(background_img, (0, 0))
+            win.blit(win_message, (WIDTH // 2 - win_message.get_width() // 2,
+            HEIGHT // 2 - win_message.get_height() // 2))
+            pygame.display.update()
+            pygame.time.wait(1000)
+
     def is_dead(self, win):
         if (self.x, self.y) in self.tail[0:(len(self.tail) - 1)]:
             self.tail = [(self.x, self.y)]
             self.tail_len = 1
-            win.fill(BLACK)
+            self.menu = True
+            #win.fill(BLACK)
+            pygame.mixer.Sound.play(dead_sound)
+            win.blit(background_img, (0, -HEIGHT))
             win.blit(game_over_message, (WIDTH // 2 - game_over_message.get_width() // 2,
                                         HEIGHT // 2 - game_over_message.get_height() // 2))
             pygame.display.update()
             pygame.time.wait(1000)
+            #return True
+        #return False
 
     def track_tail(self):
         if not (self.x < 0 or self.y < 0 or self.x > WIDTH - self.width or self.y > WIDTH - self.width):
@@ -59,13 +81,13 @@ class Snake:
         return False
 
     def change_direction(self, event):
-        if self.is_key_pressed(pygame.K_w, event):
+        if self.is_key_pressed(pygame.K_w, event) or self.is_key_pressed(pygame.K_UP, event):
             self.direction = "up"
-        if self.is_key_pressed(pygame.K_s, event):
+        if self.is_key_pressed(pygame.K_s, event) or self.is_key_pressed(pygame.K_DOWN, event):
             self.direction = "down"
-        if self.is_key_pressed(pygame.K_a, event):
+        if self.is_key_pressed(pygame.K_a, event) or self.is_key_pressed(pygame.K_LEFT, event):
             self.direction = "left"
-        if self.is_key_pressed(pygame.K_d, event):
+        if self.is_key_pressed(pygame.K_d, event) or self.is_key_pressed(pygame.K_RIGHT, event):
             self.direction = "right"
  
 
@@ -87,7 +109,10 @@ class Snake:
         if self.y < 0:
             self.y = HEIGHT - self.height 
             self.track_tail()
+
         self.is_dead(win)
+        self.win_game(win)
+
         for i in range(len(self.tail)):
             win.blit(self.head, self.tail[-1])
             if i != len(self.tail) - 1:
